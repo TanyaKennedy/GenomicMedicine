@@ -1,0 +1,12 @@
+install.packages("readxl")
+library(readxl)
+AS_cohort <- read_excel("AS_cohort.xlsx")
+
+# Count male and female patients
+gender_counts <- table(AS_cohort$Gender)
+
+# Calculate percentages
+gender_percentages <- prop.table(gender_counts) * 100
+
+print(gender_counts)
+print(gender_percentages)
