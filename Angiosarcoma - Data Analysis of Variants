@@ -1,0 +1,70 @@
+# Function to get unique genes from each file
+get_gene_column <- function(file.path) {
+    # Read data from file, assuming tab-separated values
+    data <- read.delim(file.path, sep="\t", stringsAsFactors = FALSE)
+    # Check if 'Gene' column exists
+    if ("Gene" %in% colnames(data)) {
+        # Get unique genes from the 'Gene' column
+        unique_genes <- unique(data[["Gene"]])
+        # Return a data frame with gene names and the source file
+        return(data.frame(Gene = unique_genes, Source = basename(file.path)))
+    } else {
+        # Return an empty data frame if 'Gene' column is not present
+        return(data.frame(Gene = character(0), Source = character(0)))
+    }
+}
+ 
+# List of file paths
+file_paths <- c("patient_1.tsv", "patient_2.tsv", "patient_3.tsv",
+                "patient_4.tsv", "patient_5.tsv", "patient_6.tsv",
+                "patient_7.tsv", "patient_8.tsv", "patient_9.tsv")
+ 
+# Apply the function to each file path and combine all results into one data frame
+gene_data <- do.call("rbind", lapply(file_paths, get_gene_column))
+ 
+# Create a table of genes, counting the number of unique datasets each appears in
+gene_summary <- aggregate(Source ~ Gene, gene_data, function(x) length(unique(x)))
+ 
+# Rename columns for clarity
+names(gene_summary) <- c("Gene", "Count")
+ 
+# Filter for genes that appear in more than one dataset
+genes_in_multiple_datasets <- gene_summary[gene_summary$Count > 1, ]
+ 
+# Print the filtered data
+print(genes_in_multiple_datasets)
+ 
+# Optionally, save the results to a CSV file
+write.csv(genes_in_multiple_datasets, "genes_in_multiple_datasets.csv", row.names = FALSE)
+ 
+# Plot the distribution of gene counts across datasets using base R
+hist(gene_summary$Count, breaks = max(gene_summary$Count), col = "blue",
+     main = "Distribution of Gene Counts Across Datasets",
+     xlab = "Number of Datasets", ylab = "Frequency of Genes",
+     border = "black")
+ 
+# Convert to a data frame for easier plotting
+df_genes_in_multiple_datasets <- as.data.frame(genes_in_multiple_datasets)
+ 
+# Rename columns
+names(df_genes_in_multiple_datasets) <- c("Gene", "Count")
+ 
+# Plotting the data using barplot
+barplot(df_genes_in_multiple_datasets$Count, names.arg = df_genes_in_multiple_datasets$Gene,
+        las = 2, # Makes the gene names vertical
+        main = "Frequency of Genes Across Multiple Datasets",
+        xlab = "Gene",
+        ylab = "Number of Datasets",
+        col = "blue", border = "black")
+ 
+# Group gene data by Gene and list all unique sources it appears in
+patient_summary <- aggregate(Source ~ Gene, gene_data, FUN = function(x) paste(unique(x), collapse = ", "))
+ 
+# Merge this with genes_in_multiple_datasets to get the patient info for genes appearing in multiple datasets
+genes_in_multiple_patients <- merge(genes_in_multiple_datasets, patient_summary, by = "Gene")
+ 
+# Print the resulting table
+print(genes_in_multiple_patients)
+ 
+# Optionally, save this detailed summary to a CSV file
+write.csv(genes_in_multiple_patients, "genes_in_multiple_patients_summary.csv", row.names = FALSE)
