@@ -1,0 +1,23 @@
+install.packages("readxl")
+library(readxl)
+AS_cohort <- read_excel("AS_cohort.xlsx")
+install.packages("survival")
+library(survival)
+
+patients <- read_excel("AS_cohort_deceased.xlsx")
+
+# Convert date columns to Date objects
+patients$Date_of_onset <- as.Date(patients$Date_of_onset, format = "%d/%m/%Y")
+patients$Date_of_death <- as.Date(patients$Date_of_death, format = "%d/%m/%Y")
+
+# Create event indicator column
+patients$Event <- ifelse(patients$Status == "Deceased", 1, 0)
+
+# Fit survival model
+surv_object <- Surv(patients$Duration_in_months, patients$Event)
+
+# Fit Kaplan-Meier estimator
+km_fit <- survfit(surv_object ~ 1)
+
+# Plot survival curve
+plot(km_fit, xlab = "Time (months)", ylab = "Survival Probability")
