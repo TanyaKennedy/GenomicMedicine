@@ -1,0 +1,21 @@
+install.packages("readxl")
+library(readxl)
+AS_cohort <- read_excel("AS_cohort.xlsx")
+
+# Calculate mean age
+mean_age <- mean(2024 - AS_cohort$Y.O.B)
+
+# Calculate median age
+median_age <- median(2024 - AS_cohort$Y.O.B)
+
+# Calculate age range
+age_range <- range(2024 - AS_cohort$Y.O.B)
+
+# Calculate average age of onset
+ave_age_onset <- mean(AS_cohort$`Age_of_onset`)
+
+
+print(mean_age)
+print(median_age)
+print(age_range)
+print(ave_age_onset)
