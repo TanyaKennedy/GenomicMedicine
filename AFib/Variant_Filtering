@@ -1,0 +1,86 @@
+Variant Filtering in Case Group
+
+
+### Tiering analysis for case group ###
+
+library(dplyr)
+library(readr)
+
+# Read the af_tiering.tsv file into a data frame
+af_tiering <- read_tsv("tiering_data_af.tsv")
+
+# Read the AF_case.txt file into a vector
+af_cases <- read_lines("AF_Case.txt")
+
+# Filter the rows in the data frame where 'participant Id' is in the vector of participant ids
+filtered_af_tiering <- af_tiering %>%
+  filter('Participant Id' %in% af_cases)
+
+# View the filtered data
+print(filtered_af_tiering)
+
+# Save the filtered data into a new file
+write_tsv(filtered_af_tiering, "filtered_af_tiering_case.tsv")
+
+# Read the filtered af_tiering_case.tsv file into a new data frame
+filtered_af_tiering_case <- read_tsv("filtered_af_tiering_case.tsv")
+
+# Select the columns 
+case_genes <- filtered_af_tiering_case %>%
+  select('Participant Id', 'Genomic Feature Hgnc', 'Consequence Type')
+
+# View the seclected columns
+print(case_genes)
+
+# Save the selected columns to a new file
+write_tsv(case_genes, "genes_af_tiering_case.tsv")
+
+# Count occurences of case genes
+gene_counts_case <- case_genes %>%
+  group_by('Genomic Feature Hgnc') %>%
+  summarise(count = n())
+print(gene_counts_case)
+
+# Save to a new file
+write_tsv(gene_counts_case, "Gene_Count_Case.tsv")
+
+### Tiering analysis for control group ###
+
+library(dplyr)
+library(readr)
+
+# Read the af_tiering.tsv file into a data frame
+af_tiering <- read_tsv("tiering_data_af.tsv")
+
+# Read the AF_control.txt file into a vector
+af_control <- read_lines("AF_control.txt")
+
+# Filter the rows in the data frame where 'participant Id' is in the vector of participant ids
+filtered_af_tiering <- af_tiering %>%
+  filter('Participant Id' %in% af_control)
+
+# View the filtered data
+print(filtered_af_tiering)
+
+# Save the filtered data into a new file
+write_tsv(filtered_af_tiering, "filtered_af_tiering_control.tsv")
+
+# Read the filtered af_tiering_control.tsv file into a new data frame
+filtered_af_tiering_control <- read_tsv("filtered_af_tiering_control.tsv")
+
+# Select the columns 
+control_genes <- filtered_af_tiering_control %>%
+  select('Participant Id', 'Genomic Feature Hgnc', 'Consequence Type')
+print(control_genes)
+
+# Save the selected columns to a new file
+write_tsv(control_genes, "genes_af_tiering_control.tsv")
+
+# Count occurences of control genes
+gene_counts_control <- case_control %>%
+  group_by('Genomic Feature Hgnc') %>%
+  summarise(count = n())
+print(gene_counts_control)
+
+# Save to a new file
+write_tsv(gene_counts_control, "Gene_Count_Control.tsv")
