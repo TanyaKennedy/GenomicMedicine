@@ -1,0 +1,32 @@
+Variant extraction 
+Bash script to extract variants for each genome build and case and control groups for GWAS and Borschel.
+Script shown for Borschel
+Written by Dr Tim Hearn
+
+
+#!/bin/bash
+#BSUB-q inter
+#BSUB -P re_gecip_cardiovascular
+#BSUB-o/re_gecip/shared_allGeCIPs/cam_medgen_share_TK/GRCH37/borschel/case/script_output.sLout
+#BSUB-e/re_gecip/shared_allGeCIPs/cam_medgen_share_TK/GRCH37/borschel/case/script_error.J.err
+#BSUB -J evbc_gird migMod
+#BSUB-R "rusage(mem-10000] span(hosts-1]"
+#BSUB -n 2
+#BSUB -cwd "
+
+module load beftools/1.16
+module load tabix/1.18
+
+RESULTS="results.txt"
+FAILOUT-"filepathsReadFail.tsv" touch $RESULTS touch $FAILOUT
+
+
+while read -r vcf; do if [-e svcf l;
+then
+tabix -h svcf-R borschel_prs_location_37.tsv |\ beftools norm -m -any | \
+beftools view -f PASS -i 'MIN (FMT/DP)>10 & MIN (FMT/GQ) >15' | 1
+beftools query -f' [SSAMPLE]\tSCHROM\ t8POS\ tSID\t&REFItSALT\tSQUAL\tSFILTER\t [SGT]\t [SGQI\n' >> $RESULTS;
+else
+  echo $vcf >> $FAILOUT
+  fi
+done < case_GRCh37.txt sed -I '1s/~/SAMPLE\tCHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tGT\tGQ\n/' $RESULTS
