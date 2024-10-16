@@ -1,0 +1,19 @@
+
+### F test and t test ###
+
+# Perform F-Test for equality of variances
+f_test_results <- var.test(cases_prs_summary$x, controls_prs_summary$x)
+print(f_test_results)
+
+# Determine if variances are equal or unequal
+if (f_test_results$p.value > 0.05) {
+  var_equal <- TRUE 
+  cat("The variances are equal.\n")
+} else {
+  var_equal <- FALSE 
+  cat("The variances are unequal.\n")
+}
+
+# Perform T-test
+t_test_results <- t.test(cases_prs_summary$x, controls_prs_summary$x, var.equal = var_equal)
+print(t_test_results)
