@@ -1,0 +1,28 @@
+Genome build split for control group
+R script to search the filepaths and then split into ‘control_GRCh37.txt and ‘control_GRCh38.txt’
+
+### Genome build split for AF_control ### 
+
+afcase <- scan("AF_Control.txt", what=numeric(), sep="/n")
+
+genome_file <- read.delim("genome_file_paths_and_types_2024-07-11_10-32-24.tsv", sep="\t", header = TRUE)
+
+matching_rows <- genome_file[genome_file$Particpant.Id %in% afcase, ]
+
+ordered_build <- matchin_rows[order(matching_rows$Participant.Id, matching_rows$Genome.Build, matching_rows$Delivery.Id, decreasing = TRUE),]
+
+core.file <- ordered_build[!duplicated(ordered_build$Participant.Id),]
+print(core.file)
+
+build.split <- split(core.file, core.file$Genome.Build)
+core.file37 <- build.split[["GRCh37"]]
+core.file38 <- build.split[["GRCh38"]]
+
+print(core.file37)
+print(core.file38)
+
+write.table(core.file37$File.Path, "control_GRCh37.txt", row.names = FALSE, quote = FALSE, col.names = FALSE)
+write.table(core.file38$File.Path, "control_GRCh38.txt", row.names = FALSE, quote = FALSE, col.names = FALSE)
+
+
+
