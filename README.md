@@ -2,9 +2,8 @@ This folder contains all of the code used for my 3 projects during my MRes in Ge
 
 My projects are as follows:
 
-Project 1 : Somatic Variant Analysis of Angiosarcoma patients in the 100,000 Genomes Project
+Project 1 : Unveiling Genetic Drivers of Angiosarcoma: A Somatic Variant Analysis from the 100,000 Genomes Project
 
-Project 2 : Genomics of Familial Atrial Fibrillation
+Project 2 : Exploration of Familial Atrial Fibrillation: utilising the 100,000 Genomes Project for Germline Variant Identification and Polygenic Risk Assessment
 
-Project 3 : Cardiovascular Model 
 
