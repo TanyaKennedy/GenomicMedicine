@@ -1,0 +1,49 @@
+## Shapiro-Wilk Test for Normality ###
+
+# Perform Shapiro-Wilk test for cases PRS
+shapiro_cases <- shapiro.test(cases_prs_summary$PRS)
+print(shapiro_cases)
+
+# Perform Shapiro-Wilk test for controls PRS
+shapiro_controls <- shapiro.test(controls_prs_summary$PRS)
+print(shapiro_controls)
+
+### F test and T test ###
+
+# Perform F-Test for equality of variances
+f_test_results <- var.test(cases_prs_summary$PRS, controls_prs_summary$PRS)
+print(f_test_results)
+
+# Determine if variances are equal or unequal
+if (f_test_results$p.value > 0.05) {
+  var_equal <- TRUE 
+  cat("The variances are equal.\n")
+} else {
+  var_equal <- FALSE 
+  cat("The variances are unequal.\n")
+}
+
+# Perform T-test
+t_test_results <- t.test(cases_prs_summary$PRS, controls_prs_summary$PRS, var.equal = var_equal)
+print(t_test_results)
+
+### Cohen's d Calculation ###
+
+# Calculate Cohen's d
+cohen_d <- function(mean1, sd1, n1, mean2, sd2, n2) {
+  pooled_sd <- sqrt(((n1 - 1) * sd1^2 + (n2 - 1) * sd2^2) / (n1 + n2 - 2))
+  d <- (mean1 - mean2) / pooled_sd
+  return(d)
+}
+
+# Get the sample sizes
+n_cases <- nrow(cases_prs_summary)
+n_controls <- nrow(controls_prs_summary)
+
+# Calculate Cohen's d for the PRS data
+cohen_d_value <- cohen_d(
+  mean1 = cases_stats$mean, sd1 = cases_stats$sd, n1 = n_cases,
+  mean2 = controls_stats$mean, sd2 = controls_stats$sd, n2 = n_controls
+)
+
+cat("Cohen's d:", cohen_d_value, "\n")
