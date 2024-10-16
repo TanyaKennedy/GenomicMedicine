@@ -1,0 +1,112 @@
+R script provided by Dr Tim Hearn
+
+
+### GWAS Enrichment ###
+
+# Parse the Files
+parse_vcf_info <- function(file_path) {
+  vcf_data <- read.table(file_path, header = FALSE, stringsAsFactors = FALSE)
+  colnames(vcf_data) <- c("Sample", "Chrom", "Pos", "ID", "Ref", "Alt", "Qual", "Filter", "GT", "GQ")
+
+  # Split GT field to count alleles
+  vcf_data$AlleleCount <- sapply(strsplit(vcf_data$GT, "/"), function(gt) sum(as.numeric(gt)))
+
+  return(vcf_data)
+}
+
+# Parse cases and conrols
+cases <- parse_vcf_info("cases.txt")
+controls <- parse_vcf_info("control.txt")
+
+# Calculate total allele counts for cases and controls
+total_cases_alleles <- sum(cases$AlleleCount, na.rm = TRUE)
+total_controls_alleles <- sum(controls$AlleleCount, na.rm = TRUE)
+
+# Function to aggregate allele frequencies by ID
+aggregate_allele_freq <- function(data) {
+  aggregate(AlleleCount ~ ID, data = data, sum)
+}
+
+#Aggregate frequencies for cases and controls
+cases_freq <- aggregate_allele_freq(cases)
+controls_freq <- aggregate_allele_freq(controls)
+
+# Combine frequencies
+combined_freq <- merge(cases_freq, controls_freq, by = "ID", suffixes = c("_cases", "_controls"))
+
+# Initialise the matrix list
+combined_freq$matrix <- vector("list", nrow(combined_freq))
+
+# Generate matrices for Fisher's test
+for (i in 1:nrow(combined_freq)) {
+  combined_freq$matrix[[i]] <- matrix(c(
+    combined_freq$AlleleCount_cases[i], total_cases_alleles - combined_freq$AlleleCount_cases[i],
+    combined_freq$AlleleCount_controls[i], total_controls_alleles - combined_freq$AlleleCount_controls[i]),
+    nrow = 2)
+}
+
+# Perform fishers exact test
+combined_freq$fisher <- lapply(combined_freq$matrix, fisher.test)
+
+# Extract Results and Write to CSV
+results <- data.frame(
+  ID = combined_freq$ID,
+  p.value = sapply(combined_freq$fisher, function(x) x$p.value),
+  odds_ratio = sapply(combined_freq$fisher, function(x) ifelse(is.null(x$estimate), NA, x$estimate["odds ratio"]))
+)
+
+write.csv(results, "3A_fishers_results.csv", row.names = FALSE)
+
+
+
+
+### Significant results - p values and odds ratios ###
+
+# Load the results from the CSV file
+results <- read.csv("3A_fishers_results.csv")
+
+# Define the significance threshold and OR condition
+threshold <- 0.05
+or_threshold <- 1  
+
+# Count the number of significant variants with OR > 1
+num_significant_and_or_above_1 <- sum(results$p.value < threshold & results$odds_ratio > or_threshold)
+cat("Number of significant variants with p-value <", threshold, "and OR >", or_threshold, ":", num_significant_and_or_above_1, "\n")
+
+# Filter results for significant p-values and OR > 1
+significant_and_or_above_1_results <- results[results$p.value < threshold & results$odds_ratio > or_threshold, ]
+
+# Save the filtered results to a CSV file
+write.csv(significant_and_or_above_1_results, "gwas_significant_or_above_1_results.csv", row.names = FALSE)
+
+# Create a histogram for the filtered p-values
+p_value_plot_filtered <- ggplot(significant_and_or_above_1_results, aes(x = p.value)) +
+  geom_histogram(binwidth = 0.01, fill = "skyblue", color = "black", alpha = 0.7) +
+  labs(x = "p-value", y = "Frequency") +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "white"),  
+    panel.background = element_rect(fill = "white"), 
+    title = element_text(size = 14, face = "bold"),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10)
+  )
+
+# Save the histogram for filtered p-values
+ggsave("gwas_distribution_of_filtered_p_values.png", plot = p_value_plot_filtered, width = 8, height = 6, dpi = 300)
+
+# Create a histogram for the filtered odds ratios
+odds_ratio_plot_filtered <- ggplot(significant_and_or_above_1_results, aes(x = odds_ratio)) +
+  geom_histogram(binwidth = 0.1, fill = "lightgreen", color = "black", alpha = 0.7) +
+  labs(x = "Odds Ratio", y = "Frequency") +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "white"),  
+    panel.background = element_rect(fill = "white"),
+    title = element_text(size = 14, face = "bold"),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10)
+  )
+
+# Save the histogram for filtered odds ratios
+ggsave("gwas_distribution_of_filtered_odds_ratios.png", plot = odds_ratio_plot_filtered, width = 8, height = 6, dpi = 300)
