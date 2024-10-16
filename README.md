@@ -1,4 +1,4 @@
-This folder contains all of the code used for my 3 projects during my MRes in Genomic Medicine at the University of Cambridge.
+This folder contains the code used for my 2 projects during my MRes in Genomic Medicine at the University of Cambridge.
 
 My projects are as follows:
 
