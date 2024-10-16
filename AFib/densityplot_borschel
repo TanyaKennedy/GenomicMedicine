@@ -1,0 +1,37 @@
+### Density Plot for Borschel ###
+
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Read the data from the file
+stats_data <- read.csv("//re_gecip/shared_allGeCIPs/cam_medgen_share_TK/ResultsAF/Borschel/summary_statistics_prs.csv")
+
+# Function to simulate PRS data for each group
+simulate_prs_data <- function(mean, sd, n = 1000) {
+  rnorm(n, mean = mean, sd = sd)
+}
+
+# Generate simulated PRS data for each group
+set.seed(123)
+simulated_data <- stats_data %>%
+  rowwise() %>%
+  mutate(simulated_prs = 
+           list(simukate_prs_data(Mean_PRS, SD_PRS))) %>%
+  unnest(simulated_prs)
+
+# Create the density plot
+borschel_prs_plot <- ggplot(simulated_data, aes(x = simulated_prs, fill = Group)) +
+  geom_density(alpha = 0.5) +
+  labs(x = "Polygenic Risk Score (PRS)", 
+       y = "Density") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),
+	panel.background = element_rect(fill = "white"),
+plot.background = element_rect(fill = "white"))
+
+print(borschel_prs_plot)
+
+ggsave(filename = "Borschel_PRS_density_Plot.png", plot = gwas_prs_plot, width = 8, height = 6)
+  
+
