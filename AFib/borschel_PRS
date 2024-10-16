@@ -1,0 +1,60 @@
+### Borschel PRS ###
+
+# Load the Weights File without predefined headers and assign column names manually
+variant_weights <- read.table("Borschel_OR.tsv", header = FALSE, stringsAsFactors = FALSE)
+colnames(variant_weights) <- c("ID", "Weight")
+
+# Calculate Individual PRS
+parse_vcf_info_with_prs <- function(file_path, weights) {
+  vcf_data <- read.table(file_path, header = FALSE, stringsAsFactors = FALSE)
+  colnames(vcf_data) <- c("Sample", "Chrom", "Pos", "ID", "Ref", "Alt", "Qual", "Filter", "GT", "GQ")
+
+  # Split GT field to count alleles
+  vcf_data$AlleleCount <- sapply(strsplit(as.character(vcf_data$GT), "/"), function(gt) sum(as.numeric(gt)))
+
+  # Join with weights to calculate PRS
+  merged_data <- merge(vcf_data, weights, by = "ID")
+  merged_data$PRS <- merged_data$AlleleCount * merged_data$Weight
+
+  return(merged_data)
+}
+
+# Calculate PRS for cases and controls
+cases_with_prs <- parse_vcf_info_with_prs("cases.txt", variant_weights)
+controls_with_prs <- parse_vcf_info_with_prs("control.txt", variant_weights)
+
+# Aggregate PRS by sample
+aggregate_prs <- function(data) {
+  aggregate(data$PRS, by = list(Sample = data$Sample), FUN = sum)
+}
+
+cases_prs_summary <- aggregate_prs(cases_with_prs)
+controls_prs_summary <- aggregate_prs(controls_with_prs)
+
+# Write aggregated PRS to CSV
+write.csv(cases_prs_summary, "cases_prs_summary.csv", row.names = FALSE)
+write.csv(controls_prs_summary, "controls_prs_summary.csv", row.names = FALSE)
+
+# Calculate mean and standard deviation for cases and controls
+summary_statistics <- function(prs_data) {
+  mean_prs <- mean(prs_data$x)
+  sd_prs <- sd(prs_data$x)
+  return(list(mean = mean_prs, sd = sd_prs))
+}
+
+cases_stats <- summary_statistics(cases_prs_summary)
+controls_stats <- summary_statistics(controls_prs_summary)
+
+# Print summary statistics
+cat("Cases PRS Mean and SD:", cases_stats$mean, cases_stats$sd, "\n")
+cat("Controls PRS Mean and SD:", controls_stats$mean, controls_stats$sd, "\n")
+
+# Prepare summary statistics for output
+summary_stats_df <- data.frame(
+  Group = c("Cases", "Controls"),
+  Mean_PRS = c(cases_stats$mean, controls_stats$mean),
+  SD_PRS = c(cases_stats$sd, controls_stats$sd)
+)
+
+# Write summary statistics to CSV
+write.csv(summary_stats_df, "summary_statistics_prs.csv", row.names = FALSE)
