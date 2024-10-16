@@ -1,0 +1,26 @@
+Combining genome builds for case and control groups 
+Command line prompts to combine the results from each genome build from case and control groups. The prompts in this appendix combine the GRCH37 GWAS case and control group results for each genome build. The highlighted sections were edited for the Borschel and Yang databases. 
+
+
+# For the case group
+# Extract the header from the first file
+head -n 1 GWAS_case_37.txt > cases.txt
+
+# Extract the data (excluding the header) from the first file and append to the new file
+tail -n +2 GWAS_case_37.txt >> cases.txt
+
+# Extract the data (excluding the header) from the second file and append to the new file
+tail -n +2 GWAS_case_38.txt >> cases.txt
+
+
+
+# For the control group
+# Extract the header from the first file
+head -n 1 GWAS_control_37.txt > control.txt
+
+# Extract the data (excluding the header) from the first file and append to the new file
+tail -n +2 GWAS_control_37.txt >> control.txt
+
+# Extract the data (excluding the header) from the second file and append to the new file
+tail -n +2 GWAS_control_38.txt >> control.txt
+
